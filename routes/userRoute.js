@@ -109,7 +109,7 @@ router.post('/auth/login', async (req, res) => {
                 const hashPassword = isUser.password;
                 
                 const passwordMatch = await bcrypt.compare(password, isUser.password);
-                console.log(passwordMatch, password);
+                console.log(passwordMatch, password, isUser);
                 
                 if(!passwordMatch) {
                         console.log("Wrong password");
@@ -125,6 +125,7 @@ router.post('/auth/login', async (req, res) => {
                         user: {
                                 id: isUser._id,
                                 name: isUser.name,
+                                role: isUser.role,
                                 email: isUser.email
                         }
                 });
