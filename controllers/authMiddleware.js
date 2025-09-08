@@ -1,46 +1,42 @@
-const express = require('express')
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
+const authMiddleware = (allowedRoles = []) => {
+  return (req, res, next) => {
+    const authHeaders = req.headers.authorization;
 
-const authMiddleware = ( allowedRoles = [] ) => {
-        return (req, res, next) => {
-                const authHeader = req.headers.authorization;
+    if (!authHeaders || !authHeaders.startsWith("Bearer ")) {
+      return res.status(400).json({ message: "Token not found" });
+    }
 
-                if(!authHeader || !authHeader.startsWith("Bearer")) {
-                        return res.status(400).json({message: "Token not found"});
-                }
+    const token = authHeaders.split(" ")[1];
 
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      req.user = decoded;
 
-                const token = authHeader.split(" ")[1];
+      const userRole = decoded.role;
 
-                try {
-                        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      console.log(userRole, decoded);
 
-                        const userRole = decoded.role;
+      if (userRole === "admin") {
+        return next();
+      }
 
-                        console.log(userRole, decoded);
-
-                        if(userRole === 'admin') {
-                                return next();
-                        }
-
-                        if(userRole === 'passenger') {
-                                if(req.method === 'GET') {
-                                        return next();
-                                } else {
-                                        return req.status(403).json({message: "Unauthorized"});
-                                }
-                        }
-
-                          return res.status(403).json({ message: "Forbidden: Insufficient role" });
-                        
-                } catch (error) {
-                        console.log(error);
-                        
-                        return res.status(500).json({message: error.message});
-                }
-
+      if (userRole === 'passenger') {
+        if (req.method === 'GET') {
+          return next();
+        } else {
+          return res.status(403).json({ message: "Unauthorized" }); // ✅ FIXED: req → res
         }
-}
+      }
+
+      return res.status(403).json({ message: "Forbidden: Insufficient role" });
+
+    } catch (error) {
+      console.log("JWT Verification Error:", error.message); // ✅ More helpful log
+      return res.status(401).json({ message: "Invalid or expired token" }); // ✅ Better status code
+    }
+  };
+};
 
 module.exports = authMiddleware;

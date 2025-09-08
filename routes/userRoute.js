@@ -3,11 +3,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const router = express.Router();
+const authMiddleware = require('../controllers/authMiddleware');
 
 const User = require('../models/user-schema');
 
 //base rooot for all users
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware(), async (req, res) => {
         try{
                 const allUsers = await User.find();
                 console.log("Users Fetched.");

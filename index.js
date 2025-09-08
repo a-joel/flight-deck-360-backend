@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/users', userRoute);
 app.use('/api/booking', ticketBookingRoute);
-app.use('/api/flights', authMiddleware('admin'), flightRoute);
+app.use('/api/flights', flightRoute);
 
 dbConnection();
 
